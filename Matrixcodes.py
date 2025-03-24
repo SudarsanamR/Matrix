@@ -147,7 +147,10 @@ def edit_matrix():
     print(f"Matrix {name} has been updated.")
 
 def list_and_select_matrices():
-    """Display a numbered list of matrices and return a list of tuples (number, name, matrix)."""
+    """
+    Display a numbered list of matrices (with an extra option to exit) and
+    return a list of tuples (name, matrix). The caller can then choose one.
+    """
     if not matrices:
         print("No matrices defined yet.")
         return []
@@ -158,15 +161,18 @@ def list_and_select_matrices():
         mat = matrices[name]
         print(f"{idx}. Matrix {name} ({mat['rows']}x{mat['cols']})")
         numbered_list.append((name, mat))
+    print("0. Back")
     return numbered_list
 
 def show_matrix():
-    """Display the contents of a chosen matrix from a numbered list."""
+    """Display the contents of a chosen matrix from a numbered list or exit."""
     numbered = list_and_select_matrices()
     if not numbered:
         return
     try:
-        choice = int(input("Select a matrix number to show: "))
+        choice = int(input("Select a matrix number to show (or 0 to go back): "))
+        if choice == 0:
+            return
         if choice < 1 or choice > len(numbered):
             print("Invalid selection.")
             return
@@ -185,13 +191,15 @@ def print_matrix(mat):
             print(f"a{i+1}{j+1} = {mat['data'][i][j]}", end="\t")
         print()
 
-def select_matrix_by_number(prompt="Select a matrix by number: "):
+def select_matrix_by_number(prompt="Select a matrix by number (or 0 to cancel): "):
     """Display the matrices with numbers and let the user choose one. Returns (name, matrix) tuple."""
     numbered = list_and_select_matrices()
     if not numbered:
         return None
     try:
         choice = int(input(prompt))
+        if choice == 0:
+            return None
         if choice < 1 or choice > len(numbered):
             print("Invalid selection.")
             return None
@@ -240,11 +248,11 @@ def matrix_operations_menu():
         
         if choice in ['1','2','3']:
             print("Select first matrix:")
-            chosen = select_matrix_by_number("Enter number for first matrix: ")
+            chosen = select_matrix_by_number("Enter number for first matrix (or 0 to cancel): ")
             if not chosen: continue
             _, mat1 = chosen
             print("Select second matrix:")
-            chosen = select_matrix_by_number("Enter number for second matrix: ")
+            chosen = select_matrix_by_number("Enter number for second matrix (or 0 to cancel): ")
             if not chosen: continue
             _, mat2 = chosen
             try:
@@ -256,42 +264,42 @@ def matrix_operations_menu():
                     result = multiply_matrices(mat1, mat2)
                 print("Operation successful. Result:")
                 print_matrix(result)
-                store = input("Store result as a new matrix? (y/n): ").strip().lower()
-                if store == 'y':
+                store = input("Store result as a new matrix? (Enter 1 for yes, 0 for no): ").strip()
+                if store == '1':
                     name = get_new_matrix_name()
                     matrices[name] = result
                     print(f"Result stored as Matrix {name}.")
             except ValueError as e:
                 print(f"Error: {e}")
         elif choice == '4':
-            chosen = select_matrix_by_number("Select a matrix for transpose (by number): ")
+            chosen = select_matrix_by_number("Select a matrix for transpose (by number, or 0 to cancel): ")
             if not chosen: continue
             _, mat = chosen
             result = transpose_matrix(mat)
             print("Transpose successful. Result:")
             print_matrix(result)
-            store = input("Store result as a new matrix? (y/n): ").strip().lower()
-            if store == 'y':
+            store = input("Store result as a new matrix? (Enter 1 for yes, 0 for no): ").strip()
+            if store == '1':
                 name = get_new_matrix_name()
                 matrices[name] = result
                 print(f"Result stored as Matrix {name}.")
         elif choice == '5':
-            chosen = select_matrix_by_number("Select a matrix for inverse (by number): ")
+            chosen = select_matrix_by_number("Select a matrix for inverse (by number, or 0 to cancel): ")
             if not chosen: continue
             _, mat = chosen
             try:
                 result = inverse_matrix(mat)
                 print("Inverse successful. Result:")
                 print_matrix(result)
-                store = input("Store result as a new matrix? (y/n): ").strip().lower()
-                if store == 'y':
+                store = input("Store result as a new matrix? (Enter 1 for yes, 0 for no): ").strip()
+                if store == '1':
                     name = get_new_matrix_name()
                     matrices[name] = result
                     print(f"Result stored as Matrix {name}.")
             except ValueError as e:
                 print(f"Error: {e}")
         elif choice == '6':
-            chosen = select_matrix_by_number("Select a matrix to compute determinant (by number): ")
+            chosen = select_matrix_by_number("Select a matrix to compute determinant (by number, or 0 to cancel): ")
             if not chosen: continue
             _, mat = chosen
             try:
@@ -300,7 +308,7 @@ def matrix_operations_menu():
             except ValueError as e:
                 print(f"Error: {e}")
         elif choice == '7':
-            chosen = select_matrix_by_number("Select a matrix to compute trace (by number): ")
+            chosen = select_matrix_by_number("Select a matrix to compute trace (by number, or 0 to cancel): ")
             if not chosen: continue
             _, mat = chosen
             try:
