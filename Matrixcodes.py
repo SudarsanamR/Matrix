@@ -76,7 +76,6 @@ class Matrix:
     def inverse(self):
         if not self.is_square():
             raise ValueError("Inverse is defined only for square matrices.")
-        # Use sympy's matrix inversion.
         try:
             inv = sp.Matrix(self.data).inv()
         except sp.NonInvertibleMatrixError:
@@ -89,13 +88,11 @@ class Matrix:
         If numeric is True, returns numerical approximations.
         Otherwise, returns symbolic eigenvalues.
         """
-        # Use eigenvals() and extract the keys.
         sym_eigs = list(sp.Matrix(self.data).eigenvals().keys())
         if numeric:
             return [sp.N(e) for e in sym_eigs]
         else:
             return sym_eigs
-
 
     def characteristic_equation(self):
         """
@@ -146,7 +143,6 @@ class MatrixManager:
         self.counter = 0   # for assigning names
 
     def _get_new_name(self):
-        # Use uppercase letters; if more than 26, append a number.
         if self.counter < 26:
             name = chr(65 + self.counter)
         else:
@@ -166,7 +162,6 @@ class MatrixManager:
             for i in range(rows):
                 row = []
                 for j in range(cols):
-                    # Accept expressions (e.g., 2+3j, sin(pi/4), log(2)) as input.
                     while True:
                         expr = input(f"Enter element a{i+1}{j+1}: ")
                         try:
@@ -318,11 +313,13 @@ def operations_menu(manager):
             if choice in ['1', '2', '3']:
                 print("Select first matrix:")
                 first = manager.select_matrix()
-                if first is None: continue
+                if first is None: 
+                    continue
                 _, mat1 = first
                 print("Select second matrix:")
                 second = manager.select_matrix()
-                if second is None: continue
+                if second is None: 
+                    continue
                 _, mat2 = second
                 if choice == '1':
                     result = mat1.add(mat2)
@@ -335,11 +332,14 @@ def operations_menu(manager):
                 manager.store_result(result)
             elif choice == '4':
                 chosen = manager.select_matrix()
-                if chosen is None: continue
+                if chosen is None: 
+                    continue
                 _, mat = chosen
                 try:
                     exp = float(input("Enter the real exponent: "))
                     result = mat.power(exp)
+                    # Automatically convert to numerical approximations.
+                    result = Matrix([[sp.N(elem) for elem in row] for row in result.data])
                     print(f"Matrix raised to the power {exp}:")
                     print(result)
                     manager.store_result(result)
@@ -347,7 +347,8 @@ def operations_menu(manager):
                     print("Invalid input for exponent.")
             elif choice == '5':
                 chosen = manager.select_matrix()
-                if chosen is None: continue
+                if chosen is None: 
+                    continue
                 _, mat = chosen
                 result = mat.transpose()
                 print("Transpose successful. Result:")
@@ -355,7 +356,8 @@ def operations_menu(manager):
                 manager.store_result(result)
             elif choice == '6':
                 chosen = manager.select_matrix()
-                if chosen is None: continue
+                if chosen is None: 
+                    continue
                 _, mat = chosen
                 result = mat.inverse()
                 print("Inverse successful. Result:")
@@ -363,19 +365,22 @@ def operations_menu(manager):
                 manager.store_result(result)
             elif choice == '7':
                 chosen = manager.select_matrix()
-                if chosen is None: continue
+                if chosen is None: 
+                    continue
                 _, mat = chosen
                 det = mat.determinant()
                 print(f"Determinant: {det}")
             elif choice == '8':
                 chosen = manager.select_matrix()
-                if chosen is None: continue
+                if chosen is None: 
+                    continue
                 _, mat = chosen
                 tr = mat.trace()
                 print(f"Trace: {tr}")
             elif choice == '9':
                 chosen = manager.select_matrix()
-                if chosen is None: continue
+                if chosen is None: 
+                    continue
                 _, mat = chosen
                 numeric = input("Evaluate eigenvalues numerically? (Enter 1 for yes, 0 for no): ").strip() == '1'
                 eigvals = mat.eigenvalues(numeric=numeric)
@@ -384,7 +389,8 @@ def operations_menu(manager):
                     print(f"λ{idx} = {val}")
             elif choice == '10':
                 chosen = manager.select_matrix()
-                if chosen is None: continue
+                if chosen is None: 
+                    continue
                 _, mat = chosen
                 char_eq = mat.characteristic_equation()
                 print("Characteristic Equation:")
