@@ -27,23 +27,50 @@ def transpose_matrix(mat):
     result_data = [[mat['data'][j][i] for j in range(mat['rows'])] for i in range(mat['cols'])]
     return {'rows': mat['cols'], 'cols': mat['rows'], 'data': result_data}
 
-# Function to compute the inverse of a 2x2 matrix
+# Function to compute the inverse of a 2x2 or 3x3 matrix
 def inverse_matrix(mat):
-    if mat['rows'] != 2 or mat['cols'] != 2:
-        raise ValueError("Inverse only implemented for 2x2 matrices")
-    a, b = mat['data'][0]
-    c, d = mat['data'][1]
-    det = a * d - b * c
-    if det == 0:
-        raise ValueError("Matrix is not invertible")
-    inv_det = 1 / det
-    result_data = [[d * inv_det, -b * inv_det], [-c * inv_det, a * inv_det]]
-    return {'rows': 2, 'cols': 2, 'data': result_data}
+    if mat['rows'] != mat['cols']:
+        raise ValueError("Matrix must be square")
+    n = mat['rows']
+    
+    if n == 2:
+        a, b = mat['data'][0]
+        c, d = mat['data'][1]
+        det = a * d - b * c
+        if det == 0:
+            raise ValueError("Matrix is not invertible")
+        inv_det = 1 / det
+        result_data = [[d * inv_det, -b * inv_det], [-c * inv_det, a * inv_det]]
+        return {'rows': 2, 'cols': 2, 'data': result_data}
+    
+    elif n == 3:
+        det = determinant(mat)
+        if det == 0:
+            raise ValueError("Matrix is not invertible")
+        
+        # Compute cofactor matrix
+        cofactor = [[0] * 3 for _ in range(3)]
+        for i in range(3):
+            for j in range(3):
+                sign = (-1) ** (i + j)
+                sub_mat = submatrix(mat, i, j)
+                det_sub = determinant(sub_mat)
+                cofactor[i][j] = sign * det_sub
+        
+        # Compute adjugate (transpose of cofactor matrix)
+        adj_data = [list(row) for row in zip(*cofactor)]
+        
+        # Compute inverse by scaling adjugate by 1/det
+        inverse_data = [[elem / det for elem in row] for row in adj_data]
+        return {'rows': 3, 'cols': 3, 'data': inverse_data}
+    
+    else:
+        raise ValueError("Inverse only implemented for 2x2 and 3x3 matrices")
 
-# Function to get submatrix for determinant calculation
+# Function to get submatrix for determinant and inverse calculations
 def submatrix(mat, i, j):
-    return {'rows': mat['rows'] - 1, 'cols': mat['cols'] - 1,
-            'data': [row[:j] + row[j+1:] for row in (mat['data'][:i] + mat['data'][i+1:])]}
+    new_data = [row[:j] + row[j+1:] for row in (mat['data'][:i] + mat['data'][i+1:])]
+    return {'rows': mat['rows'] - 1, 'cols': mat['cols'] - 1, 'data': new_data}
 
 # Function to compute the determinant of a square matrix
 def determinant(mat):
@@ -60,8 +87,8 @@ def determinant(mat):
         det = 0
         for j in range(n):
             sign = (-1) ** j
-            sub_det = determinant(submatrix(mat, 0, j))
-            det += sign * mat['data'][0][j] * sub_det
+            sub_mat = submatrix(mat, 0, j)
+            det += sign * mat['data'][0][j] * determinant(sub_mat)
         return det
 
 # Function to set matrix dimensions and values
@@ -109,6 +136,14 @@ def edit_matrix(name):
         data.append(row)
     mat['data'] = data
     print(f"Matrix {name} has been updated.")
+
+# Function to print a matrix
+def print_matrix(mat):
+    if mat is None:
+        print("Matrix is not defined.")
+        return
+    for row in mat['data']:
+        print(' '.join(map(str, row)))
 
 # Function to select a matrix from available options
 def select_matrix():
@@ -198,6 +233,8 @@ def matrices_menu():
                     result = multiply_matrices(mat1, mat2)
                 matrices['Answer'] = result
                 print("Operation successful. Result stored in Answer matrix.")
+                print("Resultant Matrix:")
+                print_matrix(matrices['Answer'])
             except ValueError as e:
                 print(f"Error: {e}")
         elif choice == '4':
@@ -208,6 +245,8 @@ def matrices_menu():
             result = transpose_matrix(mat)
             matrices['Answer'] = result
             print("Transpose successful. Result stored in Answer matrix.")
+            print("Resultant Matrix:")
+            print_matrix(matrices['Answer'])
         elif choice == '5':
             print("Select matrix for inverse:")
             mat = select_matrix()
@@ -217,6 +256,8 @@ def matrices_menu():
                 result = inverse_matrix(mat)
                 matrices['Answer'] = result
                 print("Inverse successful. Result stored in Answer matrix.")
+                print("Resultant Matrix:")
+                print_matrix(matrices['Answer'])
             except ValueError as e:
                 print(f"Error: {e}")
         elif choice == '6':
