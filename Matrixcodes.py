@@ -137,13 +137,15 @@ def edit_matrix(name):
     mat['data'] = data
     print(f"Matrix {name} has been updated.")
 
-# Function to print a matrix
+# Modified Function to print a matrix with elements as a11, a12, etc.
 def print_matrix(mat):
     if mat is None:
         print("Matrix is not defined.")
         return
-    for row in mat['data']:
-        print(' '.join(map(str, row)))
+    
+    for i in range(mat['rows']):
+        for j in range(mat['cols']):
+            print(f"a{i+1}{j+1} = {mat['data'][i][j]}")
 
 # Function to select a matrix from available options
 def select_matrix():
