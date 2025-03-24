@@ -89,11 +89,13 @@ class Matrix:
         If numeric is True, returns numerical approximations.
         Otherwise, returns symbolic eigenvalues.
         """
-        sym_eigs = sp.Matrix(self.data).eigenvalues()
+        # Use eigenvals() and extract the keys.
+        sym_eigs = list(sp.Matrix(self.data).eigenvals().keys())
         if numeric:
             return [sp.N(e) for e in sym_eigs]
         else:
             return sym_eigs
+
 
     def characteristic_equation(self):
         """
