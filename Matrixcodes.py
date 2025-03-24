@@ -1,6 +1,7 @@
 import copy
 import math
 import numpy as np
+import sympy as sp
 
 # -----------------------------
 # Matrix Class
@@ -126,6 +127,17 @@ class Matrix:
         arr = np.array(self.data)
         eigvals = np.linalg.eigvals(arr)
         return eigvals
+
+    def characteristic_equation(self):
+        if not self.is_square():
+            raise ValueError("Characteristic equation is defined only for square matrices.")
+        # Define a symbolic variable
+        lam = sp.symbols('X')
+        # Create a symbolic matrix from self.data
+        A = sp.Matrix(self.data)
+        # Compute the characteristic polynomial det(lambda*I - A)
+        char_poly = sp.expand((lam*sp.eye(self.rows) - A).det())
+        return char_poly
 
 # -----------------------------
 # Matrix Manager Class
@@ -299,7 +311,8 @@ def operations_menu(manager):
         print("6. Determinant")
         print("7. Trace")
         print("8. Eigenvalues")
-        print("9. Back to Main Menu")
+        print("9. Characteristic Equation")
+        print("10. Back to Main Menu")
         choice = input("Select an option: ").strip()
         try:
             if choice in ['1', '2', '3']:
@@ -357,6 +370,13 @@ def operations_menu(manager):
                 for idx, val in enumerate(eigvals, start=1):
                     print(f"λ{idx} = {val}")
             elif choice == '9':
+                chosen = manager.select_matrix()
+                if chosen is None: continue
+                _, mat = chosen
+                char_eq = mat.characteristic_equation()
+                print("Characteristic Equation:")
+                print(f"{char_eq} = 0")
+            elif choice == '10':
                 break
             else:
                 print("Invalid choice.")
