@@ -158,6 +158,17 @@ def list_matrices():
         for name, mat in matrices.items():
             print(f"Matrix {name} ({mat['rows']}x{mat['cols']})")
 
+def show_matrix():
+    if not matrices:
+        print("No matrices to show.")
+        return
+    name = input("Enter the name of the matrix to show: ").strip().upper()
+    if name in matrices:
+        print(f"Matrix {name}:")
+        print_matrix(matrices[name])
+    else:
+        print(f"Matrix {name} does not exist.")
+
 def print_matrix(mat):
     if mat is None:
         print("Matrix is not defined.")
@@ -166,7 +177,7 @@ def print_matrix(mat):
         for j in range(mat['cols']):
             print(f"a{i+1}{j+1} = {mat['data'][i][j]}", end="\t")
         print()
-        
+
 def select_matrix(prompt="Select a matrix by name: "):
     list_matrices()
     name = input(prompt).strip().upper()
@@ -176,25 +187,18 @@ def select_matrix(prompt="Select a matrix by name: "):
         print(f"Matrix {name} does not exist.")
         return None
 
-# --- Unified Matrix Operations Menu ---
+# --- Menus ---
 
-def matrix_operations_menu():
+def management_menu():
     while True:
-        print("\nMatrix Operations Menu:")
+        print("\nMatrix Management Menu:")
         print("1. New Matrix")
         print("2. Delete Matrix")
         print("3. Edit Matrix")
         print("4. List Matrices")
-        print("5. Addition")
-        print("6. Subtraction")
-        print("7. Multiplication")
-        print("8. Transpose")
-        print("9. Inverse")
-        print("10. Determinant")
-        print("11. Trace")
-        print("12. Back to Main Menu")
+        print("5. Show Matrix")
+        print("6. Back to Main Menu")
         choice = input("Select an option: ").strip()
-        
         if choice == '1':
             new_matrix()
         elif choice == '2':
@@ -203,7 +207,27 @@ def matrix_operations_menu():
             edit_matrix()
         elif choice == '4':
             list_matrices()
-        elif choice in ['5','6','7']:
+        elif choice == '5':
+            show_matrix()
+        elif choice == '6':
+            break
+        else:
+            print("Invalid choice")
+
+def matrix_operations_menu():
+    while True:
+        print("\nMatrix Operations Menu:")
+        print("1. Addition")
+        print("2. Subtraction")
+        print("3. Multiplication")
+        print("4. Transpose")
+        print("5. Inverse")
+        print("6. Determinant")
+        print("7. Trace")
+        print("8. Back to Main Menu")
+        choice = input("Select an option: ").strip()
+        
+        if choice in ['1','2','3']:
             print("Select first matrix:")
             mat1 = select_matrix("Enter first matrix name: ")
             if not mat1: continue
@@ -211,15 +235,14 @@ def matrix_operations_menu():
             mat2 = select_matrix("Enter second matrix name: ")
             if not mat2: continue
             try:
-                if choice == '5':
+                if choice == '1':
                     result = add_matrices(mat1, mat2)
-                elif choice == '6':
+                elif choice == '2':
                     result = subtract_matrices(mat1, mat2)
-                elif choice == '7':
+                elif choice == '3':
                     result = multiply_matrices(mat1, mat2)
                 print("Operation successful. Result:")
                 print_matrix(result)
-                # Optionally, store result as a new matrix:
                 store = input("Store result as a new matrix? (y/n): ").strip().lower()
                 if store == 'y':
                     name = get_new_matrix_name()
@@ -227,7 +250,7 @@ def matrix_operations_menu():
                     print(f"Result stored as Matrix {name}.")
             except ValueError as e:
                 print(f"Error: {e}")
-        elif choice == '8':
+        elif choice == '4':
             mat = select_matrix("Select a matrix for transpose: ")
             if not mat: continue
             result = transpose_matrix(mat)
@@ -238,7 +261,7 @@ def matrix_operations_menu():
                 name = get_new_matrix_name()
                 matrices[name] = result
                 print(f"Result stored as Matrix {name}.")
-        elif choice == '9':
+        elif choice == '5':
             mat = select_matrix("Select a matrix for inverse: ")
             if not mat: continue
             try:
@@ -252,7 +275,7 @@ def matrix_operations_menu():
                     print(f"Result stored as Matrix {name}.")
             except ValueError as e:
                 print(f"Error: {e}")
-        elif choice == '10':
+        elif choice == '6':
             mat = select_matrix("Select a matrix to compute determinant: ")
             if not mat: continue
             try:
@@ -260,7 +283,7 @@ def matrix_operations_menu():
                 print(f"Determinant: {det}")
             except ValueError as e:
                 print(f"Error: {e}")
-        elif choice == '11':
+        elif choice == '7':
             mat = select_matrix("Select a matrix to compute trace: ")
             if not mat: continue
             try:
@@ -268,22 +291,23 @@ def matrix_operations_menu():
                 print(f"Trace: {tr}")
             except ValueError as e:
                 print(f"Error: {e}")
-        elif choice == '12':
+        elif choice == '8':
             break
         else:
             print("Invalid choice")
 
-# --- Main Program Loop ---
-
 def main_menu():
     while True:
         print("\nMain Menu:")
-        print("1. Matrix Operations")
-        print("2. Exit")
+        print("1. Matrix Management")
+        print("2. Matrix Operations")
+        print("3. Exit")
         choice = input("Select an option: ").strip()
         if choice == '1':
-            matrix_operations_menu()
+            management_menu()
         elif choice == '2':
+            matrix_operations_menu()
+        elif choice == '3':
             print("Exiting program.")
             break
         else:
