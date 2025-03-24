@@ -8,19 +8,23 @@ import sympy as sp
 # -----------------------------
 class Matrix:
     def __init__(self, data):
-        # data is assumed to be a 2D list of numbers.
+        """
+        data is expected to be a 2D list.
+        Each entry is converted to a sympy expression so that the matrix
+        can include complex numbers and symbolic functions.
+        """
         if not data or not all(len(row) == len(data[0]) for row in data):
             raise ValueError("Data must be a non-empty 2D list with equal row lengths.")
-        # convert all entries to float for consistency
-        self.data = [list(map(float, row)) for row in data]
+        # Convert every element using sp.sympify to allow symbolic expressions.
+        self.data = [[sp.sympify(elem) for elem in row] for row in data]
         self.rows = len(data)
         self.cols = len(data[0])
     
     def __str__(self):
-        # Return a string with each element labeled as a_ij.
+        # Pretty-print the matrix row by row.
         s = ""
         for i in range(self.rows):
-            row_str = "\t".join(f"a{i+1}{j+1} = {self.data[i][j]:.4g}" for j in range(self.cols))
+            row_str = "\t".join(f"a{i+1}{j+1} = {sp.pretty(self.data[i][j])}" for j in range(self.cols))
             s += row_str + "\n"
         return s
 
@@ -66,78 +70,70 @@ class Matrix:
     def determinant(self):
         if not self.is_square():
             raise ValueError("Determinant is defined only for square matrices.")
-        # Use Gaussian elimination with partial pivoting.
-        A = copy.deepcopy(self.data)
-        n = self.rows
-        det = 1.0
-        for i in range(n):
-            # Find pivot
-            pivot = i
-            for j in range(i, n):
-                if abs(A[j][i]) > abs(A[pivot][i]):
-                    pivot = j
-            if math.isclose(A[pivot][i], 0, abs_tol=1e-12):
-                return 0
-            if pivot != i:
-                A[i], A[pivot] = A[pivot], A[i]
-                det *= -1
-            det *= A[i][i]
-            for j in range(i+1, n):
-                factor = A[j][i] / A[i][i]
-                for k in range(i, n):
-                    A[j][k] -= factor * A[i][k]
-        return det
+        # Use sympy's built-in determinant computation.
+        return sp.Matrix(self.data).det()
 
     def inverse(self):
         if not self.is_square():
             raise ValueError("Inverse is defined only for square matrices.")
-        n = self.rows
-        # Create an augmented matrix [A | I]
-        A = copy.deepcopy(self.data)
-        I = [[1 if i == j else 0 for j in range(n)] for i in range(n)]
-        
-        for i in range(n):
-            # Find pivot and swap if necessary
-            pivot = i
-            for j in range(i, n):
-                if abs(A[j][i]) > abs(A[pivot][i]):
-                    pivot = j
-            if math.isclose(A[pivot][i], 0, abs_tol=1e-12):
-                raise ValueError("Matrix is not invertible.")
-            A[i], A[pivot] = A[pivot], A[i]
-            I[i], I[pivot] = I[pivot], I[i]
-            
-            # Normalize pivot row
-            pivot_val = A[i][i]
-            A[i] = [elem / pivot_val for elem in A[i]]
-            I[i] = [elem / pivot_val for elem in I[i]]
-            
-            # Eliminate other rows
-            for j in range(n):
-                if j != i:
-                    factor = A[j][i]
-                    A[j] = [A[j][k] - factor * A[i][k] for k in range(n)]
-                    I[j] = [I[j][k] - factor * I[i][k] for k in range(n)]
-        return Matrix(I)
+        # Use sympy's matrix inversion.
+        try:
+            inv = sp.Matrix(self.data).inv()
+        except sp.NonInvertibleMatrixError:
+            raise ValueError("Matrix is not invertible.")
+        return Matrix(inv.tolist())
 
-    def eigenvalues(self):
-        if not self.is_square():
-            raise ValueError("Eigenvalues are defined only for square matrices.")
-        # Convert self.data to a NumPy array and compute eigenvalues
-        arr = np.array(self.data)
-        eigvals = np.linalg.eigvals(arr)
-        return eigvals
+    def eigenvalues(self, numeric=False):
+        """
+        Returns the eigenvalues.
+        If numeric is True, returns numerical approximations.
+        Otherwise, returns symbolic eigenvalues.
+        """
+        sym_eigs = sp.Matrix(self.data).eigenvalues()
+        if numeric:
+            return [sp.N(e) for e in sym_eigs]
+        else:
+            return sym_eigs
 
     def characteristic_equation(self):
+        """
+        Returns the characteristic polynomial (as a sympy expression) defined by:
+            det(X*I - A) = 0.
+        Uses the symbol X.
+        """
         if not self.is_square():
             raise ValueError("Characteristic equation is defined only for square matrices.")
-        # Define a symbolic variable
-        lam = sp.symbols('X')
-        # Create a symbolic matrix from self.data
-        A = sp.Matrix(self.data)
-        # Compute the characteristic polynomial det(lambda*I - A)
-        char_poly = sp.expand((lam*sp.eye(self.rows) - A).det())
+        X = sp.symbols('X')
+        A_sym = sp.Matrix(self.data)
+        char_poly = sp.expand((X * sp.eye(self.rows) - A_sym).det())
         return char_poly
+
+    def power(self, exponent):
+        """
+        Raises the matrix to any real number exponent.
+        For negative exponents, the matrix must be invertible.
+        First, it attempts to diagonalize the matrix. If diagonalization fails,
+        it uses the matrix logarithm and exponential.
+        """
+        if not self.is_square():
+            raise ValueError("Power is defined only for square matrices.")
+        M = sp.Matrix(self.data)
+        # Try diagonalization first.
+        try:
+            P, D = M.diagonalize()
+            # Raise each diagonal entry to the exponent.
+            diag_entries = [d**exponent for d in D.diagonal()]
+            D_power = sp.diag(*diag_entries)
+            M_power = P * D_power * P.inv()
+            return Matrix(M_power.tolist())
+        except sp.MatrixError:
+            # If not diagonalizable, try using logarithm and exponential.
+            try:
+                M_log = sp.logm(M)
+                M_power = sp.exp(M_log * exponent)
+                return Matrix(M_power.tolist())
+            except Exception as e:
+                raise ValueError("Matrix power for real exponent is not defined for this matrix.")
 
 # -----------------------------
 # Matrix Manager Class
@@ -148,7 +144,7 @@ class MatrixManager:
         self.counter = 0   # for assigning names
 
     def _get_new_name(self):
-        # Use letters; if more than 26, append a number.
+        # Use uppercase letters; if more than 26, append a number.
         if self.counter < 26:
             name = chr(65 + self.counter)
         else:
@@ -168,13 +164,14 @@ class MatrixManager:
             for i in range(rows):
                 row = []
                 for j in range(cols):
+                    # Accept expressions (e.g., 2+3j, sin(pi/4), log(2)) as input.
                     while True:
+                        expr = input(f"Enter element a{i+1}{j+1}: ")
                         try:
-                            val = float(input(f"Enter element a{i+1}{j+1}: "))
-                            row.append(val)
+                            row.append(sp.sympify(expr))
                             break
-                        except ValueError:
-                            print("Invalid input. Please enter a number.")
+                        except (sp.SympifyError, ValueError):
+                            print("Invalid input. Please enter a valid number or expression.")
                 data.append(row)
             self.matrices[name] = Matrix(data)
             print(f"Matrix {name} has been created.")
@@ -205,12 +202,12 @@ class MatrixManager:
                 row = []
                 for j in range(cols):
                     while True:
+                        expr = input(f"Enter new element a{i+1}{j+1}: ")
                         try:
-                            val = float(input(f"Enter new element a{i+1}{j+1}: "))
-                            row.append(val)
+                            row.append(sp.sympify(expr))
                             break
-                        except ValueError:
-                            print("Invalid input. Please enter a number.")
+                        except (sp.SympifyError, ValueError):
+                            print("Invalid input. Please enter a valid number or expression.")
                 new_data.append(row)
             self.matrices[name] = Matrix(new_data)
             print(f"Matrix {name} has been updated.")
@@ -306,13 +303,14 @@ def operations_menu(manager):
         print("1. Addition")
         print("2. Subtraction")
         print("3. Multiplication")
-        print("4. Transpose")
-        print("5. Inverse")
-        print("6. Determinant")
-        print("7. Trace")
-        print("8. Eigenvalues")
-        print("9. Characteristic Equation")
-        print("10. Back to Main Menu")
+        print("4. Power")
+        print("5. Transpose")
+        print("6. Inverse")
+        print("7. Determinant")
+        print("8. Trace")
+        print("9. Eigenvalues")
+        print("10. Characteristic Equation")
+        print("11. Back to Main Menu")
         choice = input("Select an option: ").strip()
         try:
             if choice in ['1', '2', '3']:
@@ -337,11 +335,23 @@ def operations_menu(manager):
                 chosen = manager.select_matrix()
                 if chosen is None: continue
                 _, mat = chosen
+                try:
+                    exp = float(input("Enter the real exponent: "))
+                    result = mat.power(exp)
+                    print(f"Matrix raised to the power {exp}:")
+                    print(result)
+                    manager.store_result(result)
+                except ValueError:
+                    print("Invalid input for exponent.")
+            elif choice == '5':
+                chosen = manager.select_matrix()
+                if chosen is None: continue
+                _, mat = chosen
                 result = mat.transpose()
                 print("Transpose successful. Result:")
                 print(result)
                 manager.store_result(result)
-            elif choice == '5':
+            elif choice == '6':
                 chosen = manager.select_matrix()
                 if chosen is None: continue
                 _, mat = chosen
@@ -349,34 +359,35 @@ def operations_menu(manager):
                 print("Inverse successful. Result:")
                 print(result)
                 manager.store_result(result)
-            elif choice == '6':
+            elif choice == '7':
                 chosen = manager.select_matrix()
                 if chosen is None: continue
                 _, mat = chosen
                 det = mat.determinant()
                 print(f"Determinant: {det}")
-            elif choice == '7':
+            elif choice == '8':
                 chosen = manager.select_matrix()
                 if chosen is None: continue
                 _, mat = chosen
                 tr = mat.trace()
                 print(f"Trace: {tr}")
-            elif choice == '8':
+            elif choice == '9':
                 chosen = manager.select_matrix()
                 if chosen is None: continue
                 _, mat = chosen
-                eigvals = mat.eigenvalues()
+                numeric = input("Evaluate eigenvalues numerically? (Enter 1 for yes, 0 for no): ").strip() == '1'
+                eigvals = mat.eigenvalues(numeric=numeric)
                 print("Eigenvalues:")
                 for idx, val in enumerate(eigvals, start=1):
                     print(f"λ{idx} = {val}")
-            elif choice == '9':
+            elif choice == '10':
                 chosen = manager.select_matrix()
                 if chosen is None: continue
                 _, mat = chosen
                 char_eq = mat.characteristic_equation()
                 print("Characteristic Equation:")
                 print(f"{char_eq} = 0")
-            elif choice == '10':
+            elif choice == '11':
                 break
             else:
                 print("Invalid choice.")
