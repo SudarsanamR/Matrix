@@ -115,24 +115,20 @@ def delete_matrix():
     if not matrices:
         print("No matrices to delete.")
         return
-    list_matrices()
-    name = input("Enter the name of the matrix to delete: ").strip().upper()
-    if name in matrices:
+    chosen = select_matrix_by_number()
+    if chosen is not None:
+        name, _ = chosen
         del matrices[name]
         print(f"Matrix {name} has been deleted.")
-    else:
-        print(f"Matrix {name} does not exist.")
 
 def edit_matrix():
     if not matrices:
         print("No matrices to edit.")
         return
-    list_matrices()
-    name = input("Enter the name of the matrix to edit: ").strip().upper()
-    if name not in matrices:
-        print(f"Matrix {name} does not exist.")
+    chosen = select_matrix_by_number()
+    if chosen is None:
         return
-    mat = matrices[name]
+    name, mat = chosen
     rows, cols = mat['rows'], mat['cols']
     print(f"Editing Matrix {name} ({rows}x{cols}):")
     new_data = []
@@ -150,24 +146,35 @@ def edit_matrix():
     matrices[name]['data'] = new_data
     print(f"Matrix {name} has been updated.")
 
-def list_matrices():
+def list_and_select_matrices():
+    """Display a numbered list of matrices and return a list of tuples (number, name, matrix)."""
     if not matrices:
         print("No matrices defined yet.")
-    else:
-        print("Current matrices:")
-        for name, mat in matrices.items():
-            print(f"Matrix {name} ({mat['rows']}x{mat['cols']})")
+        return []
+    print("Stored Matrices:")
+    sorted_names = sorted(matrices.keys())
+    numbered_list = []
+    for idx, name in enumerate(sorted_names, start=1):
+        mat = matrices[name]
+        print(f"{idx}. Matrix {name} ({mat['rows']}x{mat['cols']})")
+        numbered_list.append((name, mat))
+    return numbered_list
 
 def show_matrix():
-    if not matrices:
-        print("No matrices to show.")
+    """Display the contents of a chosen matrix from a numbered list."""
+    numbered = list_and_select_matrices()
+    if not numbered:
         return
-    name = input("Enter the name of the matrix to show: ").strip().upper()
-    if name in matrices:
+    try:
+        choice = int(input("Select a matrix number to show: "))
+        if choice < 1 or choice > len(numbered):
+            print("Invalid selection.")
+            return
+        name, mat = numbered[choice - 1]
         print(f"Matrix {name}:")
-        print_matrix(matrices[name])
-    else:
-        print(f"Matrix {name} does not exist.")
+        print_matrix(mat)
+    except ValueError:
+        print("Please enter a valid number.")
 
 def print_matrix(mat):
     if mat is None:
@@ -178,13 +185,20 @@ def print_matrix(mat):
             print(f"a{i+1}{j+1} = {mat['data'][i][j]}", end="\t")
         print()
 
-def select_matrix(prompt="Select a matrix by name: "):
-    list_matrices()
-    name = input(prompt).strip().upper()
-    if name in matrices:
-        return matrices[name]
-    else:
-        print(f"Matrix {name} does not exist.")
+def select_matrix_by_number(prompt="Select a matrix by number: "):
+    """Display the matrices with numbers and let the user choose one. Returns (name, matrix) tuple."""
+    numbered = list_and_select_matrices()
+    if not numbered:
+        return None
+    try:
+        choice = int(input(prompt))
+        if choice < 1 or choice > len(numbered):
+            print("Invalid selection.")
+            return None
+        name, mat = numbered[choice - 1]
+        return (name, mat)
+    except ValueError:
+        print("Please enter a valid number.")
         return None
 
 # --- Menus ---
@@ -195,9 +209,8 @@ def management_menu():
         print("1. New Matrix")
         print("2. Delete Matrix")
         print("3. Edit Matrix")
-        print("4. List Matrices")
-        print("5. Show Matrix")
-        print("6. Back to Main Menu")
+        print("4. List/Show Matrices")
+        print("5. Back to Main Menu")
         choice = input("Select an option: ").strip()
         if choice == '1':
             new_matrix()
@@ -206,10 +219,8 @@ def management_menu():
         elif choice == '3':
             edit_matrix()
         elif choice == '4':
-            list_matrices()
-        elif choice == '5':
             show_matrix()
-        elif choice == '6':
+        elif choice == '5':
             break
         else:
             print("Invalid choice")
@@ -229,11 +240,13 @@ def matrix_operations_menu():
         
         if choice in ['1','2','3']:
             print("Select first matrix:")
-            mat1 = select_matrix("Enter first matrix name: ")
-            if not mat1: continue
+            chosen = select_matrix_by_number("Enter number for first matrix: ")
+            if not chosen: continue
+            _, mat1 = chosen
             print("Select second matrix:")
-            mat2 = select_matrix("Enter second matrix name: ")
-            if not mat2: continue
+            chosen = select_matrix_by_number("Enter number for second matrix: ")
+            if not chosen: continue
+            _, mat2 = chosen
             try:
                 if choice == '1':
                     result = add_matrices(mat1, mat2)
@@ -251,8 +264,9 @@ def matrix_operations_menu():
             except ValueError as e:
                 print(f"Error: {e}")
         elif choice == '4':
-            mat = select_matrix("Select a matrix for transpose: ")
-            if not mat: continue
+            chosen = select_matrix_by_number("Select a matrix for transpose (by number): ")
+            if not chosen: continue
+            _, mat = chosen
             result = transpose_matrix(mat)
             print("Transpose successful. Result:")
             print_matrix(result)
@@ -262,8 +276,9 @@ def matrix_operations_menu():
                 matrices[name] = result
                 print(f"Result stored as Matrix {name}.")
         elif choice == '5':
-            mat = select_matrix("Select a matrix for inverse: ")
-            if not mat: continue
+            chosen = select_matrix_by_number("Select a matrix for inverse (by number): ")
+            if not chosen: continue
+            _, mat = chosen
             try:
                 result = inverse_matrix(mat)
                 print("Inverse successful. Result:")
@@ -276,16 +291,18 @@ def matrix_operations_menu():
             except ValueError as e:
                 print(f"Error: {e}")
         elif choice == '6':
-            mat = select_matrix("Select a matrix to compute determinant: ")
-            if not mat: continue
+            chosen = select_matrix_by_number("Select a matrix to compute determinant (by number): ")
+            if not chosen: continue
+            _, mat = chosen
             try:
                 det = determinant(mat)
                 print(f"Determinant: {det}")
             except ValueError as e:
                 print(f"Error: {e}")
         elif choice == '7':
-            mat = select_matrix("Select a matrix to compute trace: ")
-            if not mat: continue
+            chosen = select_matrix_by_number("Select a matrix to compute trace (by number): ")
+            if not chosen: continue
+            _, mat = chosen
             try:
                 tr = trace_matrix(mat)
                 print(f"Trace: {tr}")
