@@ -27,45 +27,55 @@ def transpose_matrix(mat):
     result_data = [[mat['data'][j][i] for j in range(mat['rows'])] for i in range(mat['cols'])]
     return {'rows': mat['cols'], 'cols': mat['rows'], 'data': result_data}
 
-# Function to compute the inverse of a 2x2 or 3x3 matrix
+def determinant(mat):
+    """Compute determinant of a square matrix."""
+    n = mat['rows']
+    data = mat['data']
+    
+    if n == 1:
+        return data[0][0]
+    elif n == 2:
+        return data[0][0] * data[1][1] - data[0][1] * data[1][0]
+    
+    det = 0
+    for j in range(n):
+        sign = (-1) ** j
+        sub_mat = submatrix(mat, 0, j)
+        det += sign * data[0][j] * determinant(sub_mat)
+    
+    return det
+
+def submatrix(mat, row, col):
+    """Get submatrix by removing specified row and column."""
+    sub_data = [
+        [mat['data'][i][j] for j in range(mat['cols']) if j != col]
+        for i in range(mat['rows']) if i != row
+    ]
+    return {'rows': mat['rows'] - 1, 'cols': mat['cols'] - 1, 'data': sub_data}
+
 def inverse_matrix(mat):
     if mat['rows'] != mat['cols']:
         raise ValueError("Matrix must be square")
     n = mat['rows']
     
-    if n == 2:
-        a, b = mat['data'][0]
-        c, d = mat['data'][1]
-        det = a * d - b * c
-        if det == 0:
-            raise ValueError("Matrix is not invertible")
-        inv_det = 1 / det
-        result_data = [[d * inv_det, -b * inv_det], [-c * inv_det, a * inv_det]]
-        return {'rows': 2, 'cols': 2, 'data': result_data}
+    det = determinant(mat)
+    if det == 0:
+        raise ValueError("Matrix is not invertible")
     
-    elif n == 3:
-        det = determinant(mat)
-        if det == 0:
-            raise ValueError("Matrix is not invertible")
-        
-        # Compute cofactor matrix
-        cofactor = [[0] * 3 for _ in range(3)]
-        for i in range(3):
-            for j in range(3):
-                sign = (-1) ** (i + j)
-                sub_mat = submatrix(mat, i, j)
-                det_sub = determinant(sub_mat)
-                cofactor[i][j] = sign * det_sub
-        
-        # Compute adjugate (transpose of cofactor matrix)
-        adj_data = [list(row) for row in zip(*cofactor)]
-        
-        # Compute inverse by scaling adjugate by 1/det
-        inverse_data = [[elem / det for elem in row] for row in adj_data]
-        return {'rows': 3, 'cols': 3, 'data': inverse_data}
+    # Compute cofactor matrix
+    cofactor = [[0] * n for _ in range(n)]
+    for i in range(n):
+        for j in range(n):
+            sign = (-1) ** (i + j)
+            sub_mat = submatrix(mat, i, j)
+            cofactor[i][j] = sign * determinant(sub_mat)
     
-    else:
-        raise ValueError("Inverse only implemented for 2x2 and 3x3 matrices")
+    # Compute adjugate (transpose of cofactor matrix)
+    adj_data = [list(row) for row in zip(*cofactor)]
+    
+    # Compute inverse by scaling adjugate by 1/det
+    inverse_data = [[elem / det for elem in row] for row in adj_data]
+    return {'rows': n, 'cols': n, 'data': inverse_data}
 
 # Function to get submatrix for determinant and inverse calculations
 def submatrix(mat, i, j):
