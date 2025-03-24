@@ -1,86 +1,119 @@
-def add_matrices(M1, M2):
-    if len(M1) != len(M2) or len(M1[0]) != len(M2[0]):
+# Global dictionary to store matrices
+matrices = {'A': None, 'B': None, 'C': None, 'Answer': None}
+
+# Function to add two matrices
+def add_matrices(mat1, mat2):
+    if mat1['rows'] != mat2['rows'] or mat1['cols'] != mat2['cols']:
         raise ValueError("Matrices must have the same dimensions")
-    return [[M1[i][j] + M2[i][j] for j in range(len(M1[0]))] for i in range(len(M1))]
+    result_data = [[mat1['data'][i][j] + mat2['data'][i][j] for j in range(mat1['cols'])] for i in range(mat1['rows'])]
+    return {'rows': mat1['rows'], 'cols': mat1['cols'], 'data': result_data}
 
-def subtract_matrices(M1, M2):
-    if len(M1) != len(M2) or len(M1[0]) != len(M2[0]):
+# Function to subtract two matrices
+def subtract_matrices(mat1, mat2):
+    if mat1['rows'] != mat2['rows'] or mat1['cols'] != mat2['cols']:
         raise ValueError("Matrices must have the same dimensions")
-    return [[M1[i][j] - M2[i][j] for j in range(len(M1[0]))] for i in range(len(M1))]
+    result_data = [[mat1['data'][i][j] - mat2['data'][i][j] for j in range(mat1['cols'])] for i in range(mat1['rows'])]
+    return {'rows': mat1['rows'], 'cols': mat1['cols'], 'data': result_data}
 
-def multiply_matrices(M1, M2):
-    if len(M1[0]) != len(M2):
-        raise ValueError("Number of columns of M1 must equal number of rows of M2")
-    return [[sum(M1[i][k] * M2[k][j] for k in range(len(M2))) for j in range(len(M2[0]))] for i in range(len(M1))]
+# Function to multiply two matrices
+def multiply_matrices(mat1, mat2):
+    if mat1['cols'] != mat2['rows']:
+        raise ValueError("Number of columns of first matrix must equal number of rows of second matrix")
+    result_data = [[sum(mat1['data'][i][k] * mat2['data'][k][j] for k in range(mat1['cols'])) for j in range(mat2['cols'])] for i in range(mat1['rows'])]
+    return {'rows': mat1['rows'], 'cols': mat2['cols'], 'data': result_data}
 
-def transpose_matrix(M):
-    return [[M[j][i] for j in range(len(M))] for i in range(len(M[0]))]
+# Function to compute the transpose of a matrix
+def transpose_matrix(mat):
+    result_data = [[mat['data'][j][i] for j in range(mat['rows'])] for i in range(mat['cols'])]
+    return {'rows': mat['cols'], 'cols': mat['rows'], 'data': result_data}
 
-def determinant(M):
-    if len(M) != len(M[0]):
+# Function to compute the inverse of a 2x2 matrix
+def inverse_matrix(mat):
+    if mat['rows'] != 2 or mat['cols'] != 2:
+        raise ValueError("Inverse only implemented for 2x2 matrices")
+    a, b = mat['data'][0]
+    c, d = mat['data'][1]
+    det = a * d - b * c
+    if det == 0:
+        raise ValueError("Matrix is not invertible")
+    inv_det = 1 / det
+    result_data = [[d * inv_det, -b * inv_det], [-c * inv_det, a * inv_det]]
+    return {'rows': 2, 'cols': 2, 'data': result_data}
+
+# Function to get submatrix for determinant calculation
+def submatrix(mat, i, j):
+    return {'rows': mat['rows'] - 1, 'cols': mat['cols'] - 1,
+            'data': [row[:j] + row[j+1:] for row in (mat['data'][:i] + mat['data'][i+1:])]}
+
+# Function to compute the determinant of a square matrix
+def determinant(mat):
+    if mat['rows'] != mat['cols']:
         raise ValueError("Matrix must be square")
-    n = len(M)
+    n = mat['rows']
     if n == 1:
-        return M[0][0]
-    if n == 2:
-        return M[0][0] * M[1][1] - M[0][1] * M[1][0]
-    det = 0
-    for j in range(n):
-        cofactor = (-1) ** j * determinant([row[:j] + row[j+1:] for row in (M[1:])])
-        det += M[0][j] * cofactor
-    return det
-
-def trace_matrix(M):
-    if len(M) != len(M[0]):
-        raise ValueError("Matrix must be square")
-    return sum(M[i][i] for i in range(len(M)))
-
-def inverse_matrix(M):
-    if len(M) != len(M[0]):
-        raise ValueError("Matrix must be square")
-    if len(M) == 2:
-        det = determinant(M)
-        if det == 0:
-            raise ValueError("Matrix is not invertible")
-        return [[M[1][1] / det, -M[0][1] / det], [-M[1][0] / det, M[0][0] / det]]
+        return mat['data'][0][0]
+    elif n == 2:
+        a, b = mat['data'][0]
+        c, d = mat['data'][1]
+        return a * d - b * c
     else:
-        raise NotImplementedError("Inverse only implemented for 2x2 matrices")
+        det = 0
+        for j in range(n):
+            sign = (-1) ** j
+            sub_det = determinant(submatrix(mat, 0, j))
+            det += sign * mat['data'][0][j] * sub_det
+        return det
 
+# Function to set matrix dimensions and values
 def set_matrix(name):
     try:
         rows = int(input(f"Enter number of rows for Matrix {name}: "))
         cols = int(input(f"Enter number of columns for Matrix {name}: "))
-        print(f"Enter the values for Matrix {name}, row by row (space-separated numbers):")
-        matrix = []
+        if rows <= 0 or cols <= 0:
+            print("Dimensions must be positive integers.")
+            return
+        data = []
         for i in range(rows):
-            while True:
-                row = list(map(float, input(f"Enter row {i+1}: ").split()))
-                if len(row) == cols:
-                    matrix.append(row)
-                    break
-                else:
-                    print(f"Please enter exactly {cols} numbers.")
-        matrices[name] = matrix
+            row = []
+            for j in range(cols):
+                while True:
+                    try:
+                        elem = float(input(f"Enter a{i+1}{j+1}: "))
+                        row.append(elem)
+                        break
+                    except ValueError:
+                        print("Invalid input. Please enter a number.")
+            data.append(row)
+        matrices[name] = {'rows': rows, 'cols': cols, 'data': data}
+        print(f"Matrix {name} has been set.")
     except ValueError:
-        print("Invalid input. Please enter numbers.")
+        print("Invalid input for dimensions. Please enter positive integers.")
 
+# Function to edit an existing matrix
 def edit_matrix(name):
-    matrix = matrices[name]
-    rows = len(matrix)
-    cols = len(matrix[0])
+    mat = matrices[name]
+    rows = mat['rows']
+    cols = mat['cols']
     print(f"Editing Matrix {name} ({rows}x{cols}):")
+    data = []
     for i in range(rows):
-        while True:
-            row = list(map(float, input(f"Enter new row {i+1}: ").split()))
-            if len(row) == cols:
-                matrix[i] = row
-                break
-            else:
-                print(f"Please enter exactly {cols} numbers.")
+        row = []
+        for j in range(cols):
+            while True:
+                try:
+                    elem = float(input(f"Enter new a{i+1}{j+1}: "))
+                    row.append(elem)
+                    break
+                except ValueError:
+                    print("Invalid input. Please enter a number.")
+        data.append(row)
+    mat['data'] = data
+    print(f"Matrix {name} has been updated.")
 
+# Function to select a matrix from available options
 def select_matrix():
     while True:
-        print("Select matrix:")
+        print("\nSelect matrix:")
         print("1. Matrix A")
         print("2. Matrix B")
         print("3. Matrix C")
@@ -88,7 +121,7 @@ def select_matrix():
         print("5. Back")
         choice = input("Select an option: ")
         if choice in ['1', '2', '3', '4']:
-            matrix_name = ['A', 'B', 'C', 'Answer'][int(choice)-1]
+            matrix_name = ['A', 'B', 'C', 'Answer'][int(choice) - 1]
             if matrices[matrix_name] is None:
                 print(f"Matrix {matrix_name} is not defined.")
             else:
@@ -98,6 +131,7 @@ def select_matrix():
         else:
             print("Invalid choice")
 
+# Dimensions menu
 def dimensions_menu():
     while True:
         print("\nDimensions Menu:")
@@ -107,13 +141,14 @@ def dimensions_menu():
         print("4. Back")
         choice = input("Select an option: ")
         if choice in ['1', '2', '3']:
-            matrix_name = ['A', 'B', 'C'][int(choice)-1]
+            matrix_name = ['A', 'B', 'C'][int(choice) - 1]
             set_matrix(matrix_name)
         elif choice == '4':
             break
         else:
             print("Invalid choice")
 
+# Edit menu
 def edit_menu():
     while True:
         print("\nEdit Menu:")
@@ -123,7 +158,7 @@ def edit_menu():
         print("4. Back")
         choice = input("Select an option: ")
         if choice in ['1', '2', '3']:
-            matrix_name = ['A', 'B', 'C'][int(choice)-1]
+            matrix_name = ['A', 'B', 'C'][int(choice) - 1]
             if matrices[matrix_name] is None:
                 print(f"Matrix {matrix_name} is not defined. Please set dimensions first.")
             else:
@@ -133,61 +168,63 @@ def edit_menu():
         else:
             print("Invalid choice")
 
+# Matrices menu for operations
 def matrices_menu():
     while True:
         print("\nMatrices Menu:")
         print("1. Addition")
         print("2. Subtraction")
         print("3. Multiplication")
-        print("4. Inverse")
-        print("5. Transpose")
+        print("4. Transpose")
+        print("5. Inverse")
         print("6. Back")
         choice = input("Select an option: ")
         if choice in ['1', '2', '3']:
-            operation = ['add', 'subtract', 'multiply'][int(choice)-1]
+            operation = ['add', 'subtract', 'multiply'][int(choice) - 1]
             print("Select first matrix:")
-            M1 = select_matrix()
-            if M1 is None:
+            mat1 = select_matrix()
+            if mat1 is None:
                 continue
             print("Select second matrix:")
-            M2 = select_matrix()
-            if M2 is None:
+            mat2 = select_matrix()
+            if mat2 is None:
                 continue
             try:
                 if operation == 'add':
-                    result = add_matrices(M1, M2)
+                    result = add_matrices(mat1, mat2)
                 elif operation == 'subtract':
-                    result = subtract_matrices(M1, M2)
+                    result = subtract_matrices(mat1, mat2)
                 elif operation == 'multiply':
-                    result = multiply_matrices(M1, M2)
+                    result = multiply_matrices(mat1, mat2)
                 matrices['Answer'] = result
                 print("Operation successful. Result stored in Answer matrix.")
             except ValueError as e:
                 print(f"Error: {e}")
         elif choice == '4':
+            print("Select matrix for transpose:")
+            mat = select_matrix()
+            if mat is None:
+                continue
+            result = transpose_matrix(mat)
+            matrices['Answer'] = result
+            print("Transpose successful. Result stored in Answer matrix.")
+        elif choice == '5':
             print("Select matrix for inverse:")
-            M = select_matrix()
-            if M is None:
+            mat = select_matrix()
+            if mat is None:
                 continue
             try:
-                result = inverse_matrix(M)
+                result = inverse_matrix(mat)
                 matrices['Answer'] = result
-                print("Operation successful. Result stored in Answer matrix.")
-            except (ValueError, NotImplementedError) as e:
+                print("Inverse successful. Result stored in Answer matrix.")
+            except ValueError as e:
                 print(f"Error: {e}")
-        elif choice == '5':
-            print("Select matrix for transpose:")
-            M = select_matrix()
-            if M is None:
-                continue
-            result = transpose_matrix(M)
-            matrices['Answer'] = result
-            print("Operation successful. Result stored in Answer matrix.")
         elif choice == '6':
             break
         else:
             print("Invalid choice")
 
+# Determinant menu
 def determinant_menu():
     while True:
         print("\nDeterminant Menu:")
@@ -197,20 +234,21 @@ def determinant_menu():
         print("4. Back")
         choice = input("Select an option: ")
         if choice in ['1', '2', '3']:
-            matrix_name = ['A', 'B', 'C'][int(choice)-1]
-            if matrices[matrix_name] is None:
+            matrix_name = ['A', 'B', 'C'][int(choice) - 1]
+            mat = matrices[matrix_name]
+            if mat is None:
                 print(f"Matrix {matrix_name} is not defined.")
+            elif mat['rows'] != mat['cols']:
+                print("Determinant is only defined for square matrices.")
             else:
-                try:
-                    det = determinant(matrices[matrix_name])
-                    print(f"Determinant of Matrix {matrix_name}: {det}")
-                except ValueError as e:
-                    print(f"Error: {e}")
+                det = determinant(mat)
+                print(f"Determinant of Matrix {matrix_name}: {det}")
         elif choice == '4':
             break
         else:
             print("Invalid choice")
 
+# Trace menu
 def trace_menu():
     while True:
         print("\nTrace Menu:")
@@ -220,23 +258,21 @@ def trace_menu():
         print("4. Back")
         choice = input("Select an option: ")
         if choice in ['1', '2', '3']:
-            matrix_name = ['A', 'B', 'C'][int(choice)-1]
-            if matrices[matrix_name] is None:
+            matrix_name = ['A', 'B', 'C'][int(choice) - 1]
+            mat = matrices[matrix_name]
+            if mat is None:
                 print(f"Matrix {matrix_name} is not defined.")
+            elif mat['rows'] != mat['cols']:
+                print("Trace is only defined for square matrices.")
             else:
-                try:
-                    tr = trace_matrix(matrices[matrix_name])
-                    print(f"Trace of Matrix {matrix_name}: {tr}")
-                except ValueError as e:
-                    print(f"Error: {e}")
+                tr = sum(mat['data'][i][i] for i in range(mat['rows']))
+                print(f"Trace of Matrix {matrix_name}: {tr}")
         elif choice == '4':
             break
         else:
             print("Invalid choice")
 
-# Main program
-matrices = {'A': None, 'B': None, 'C': None, 'Answer': None}
-
+# Main program loop
 while True:
     print("\nMain Menu:")
     print("1. Dimensions")
@@ -257,6 +293,7 @@ while True:
     elif choice == '5':
         trace_menu()
     elif choice == '6':
+        print("Exiting program.")
         break
     else:
         print("Invalid choice")
