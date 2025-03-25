@@ -602,7 +602,11 @@ def main():
         except ValueError as e:
             print(f"Conversion error: {e}")
         
-        input("Press Enter to return to the main menu...")
+        # Prompt user to press 0 to return to main menu
+        while True:
+            user_input = input("Press 0 to return to the main menu: ")
+            if user_input.strip() == "0":
+                break
 
 if __name__ == "__main__":
     main()
