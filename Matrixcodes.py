@@ -46,15 +46,20 @@ class Matrix:
         return Matrix(result)
 
     def multiply(self, other):
-        if self.cols != other.rows:
-            raise ValueError("For multiplication, the number of columns in the first matrix must equal the number of rows in the second.")
-        result = []
-        for i in range(self.rows):
-            new_row = []
-            for j in range(other.cols):
-                s = sum(self.data[i][k] * other.data[k][j] for k in range(self.cols))
-                new_row.append(s)
-            result.append(new_row)
+        """
+        Multiplies the matrix by another matrix or a scalar.
+        If `other` is a matrix, performs matrix multiplication.
+        If `other` is a scalar (int/float), performs scalar multiplication.
+        """
+        if isinstance(other, Matrix):
+            if self.cols != other.rows:
+                raise ValueError("For matrix multiplication, the number of columns in the first matrix must equal the number of rows in the second.")
+            result = [[sum(self.data[i][k] * other.data[k][j] for k in range(self.cols))
+                       for j in range(other.cols)] for i in range(self.rows)]
+        elif isinstance(other, (int, float, sp.Number)):
+            result = [[self.data[i][j] * other for j in range(self.cols)] for i in range(self.rows)]
+        else:
+            raise ValueError("Multiplication is only supported with a matrix or a scalar number.")
         return Matrix(result)
 
     def transpose(self):
@@ -310,24 +315,55 @@ def operations_menu(manager):
         print("11. Back to Main Menu")
         choice = input("Select an option: ").strip()
         try:
-            if choice in ['1', '2', '3']:
+            if choice in ['1', '2']:
                 print("Select first matrix:")
                 first = manager.select_matrix()
-                if first is None: 
+                if first is None:
                     continue
                 _, mat1 = first
                 print("Select second matrix:")
                 second = manager.select_matrix()
-                if second is None: 
+                if second is None:
                     continue
                 _, mat2 = second
                 if choice == '1':
                     result = mat1.add(mat2)
-                elif choice == '2':
-                    result = mat1.subtract(mat2)
                 else:
-                    result = mat1.multiply(mat2)
+                    result = mat1.subtract(mat2)
                 print("Operation successful. Result:")
+                print(result)
+                manager.store_result(result)
+
+            elif choice == '3':  # Multiplication
+                print("Select a matrix:")
+                first = manager.select_matrix()
+                if first is None:
+                    continue
+                _, mat1 = first
+                scalar_or_matrix = input("Multiply by (1) another matrix or (2) a scalar? Enter 1 or 2: ").strip()
+                
+                if scalar_or_matrix == '1':
+                    print("Select second matrix:")
+                    second = manager.select_matrix()
+                    if second is None:
+                        continue
+                    _, mat2 = second
+                    result = mat1.multiply(mat2)
+                
+                elif scalar_or_matrix == '2':
+                    scalar = input("Enter the scalar value: ").strip()
+                    try:
+                        scalar = sp.N(sp.sympify(scalar))  # Convert input to a numerical value
+                        result = mat1.multiply(scalar)
+                    except (ValueError, sp.SympifyError):
+                        print("Invalid scalar value.")
+                        continue
+                
+                else:
+                    print("Invalid selection.")
+                    continue
+                
+                print("Multiplication successful. Result:")
                 print(result)
                 manager.store_result(result)
             elif choice == '4':
