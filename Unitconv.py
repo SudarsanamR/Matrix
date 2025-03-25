@@ -530,72 +530,79 @@ def convert(value, source_unit, target_unit):
     value_in_target = from_standard(value_in_standard)
     return value_in_target
 
-# Menu-driven program
-if __name__ == "__main__":
-    # Step 1: Display categories and get selection
-    print("Select a category of conversion:")
-    category_list = list(categories.keys())
-    for i, cat in enumerate(category_list, 1):
-        print(f"{i}. {cat}")
-    
+# Main menu loop
+def main():
     while True:
+        print("\nSelect a category of conversion:")
+        category_list = list(categories.keys())
+        # Display categories with capitalized names
+        for i, cat in enumerate(category_list, 1):
+            print(f"{i}. {cat.capitalize()}")
+        exit_option = len(category_list) + 1
+        print(f"{exit_option}. Exit")
+        
         try:
             category_num = int(input("Enter the number of the category: "))
-            if 1 <= category_num <= len(category_list):
+            if category_num == exit_option:
+                print("Exiting the program.")
                 break
+            elif 1 <= category_num <= len(category_list):
+                selected_category = category_list[category_num - 1]
             else:
-                print(f"Please enter a number between 1 and {len(category_list)}.")
+                print(f"Please enter a number between 1 and {exit_option}.")
+                continue
         except ValueError:
             print("Please enter a valid integer.")
-    
-    selected_category = category_list[category_num - 1]
-    units_list = list(categories[selected_category]['units'].keys())
-    
-    # Step 2: Display 'from' units and get selection
-    print(f"\nSelect the 'from' unit for {selected_category}:")
-    for i, unit in enumerate(units_list, 1):
-        print(f"{i}. {unit}")
-    
-    while True:
-        try:
-            from_unit_num = int(input("Enter the number of the 'from' unit: "))
-            if 1 <= from_unit_num <= len(units_list):
+            continue
+
+        units_list = list(categories[selected_category]['units'].keys())
+        
+        # Select 'from' unit
+        print(f"\nSelect the 'from' unit for {selected_category.capitalize()}:")
+        for i, unit in enumerate(units_list, 1):
+            print(f"{i}. {unit}")
+        while True:
+            try:
+                from_unit_num = int(input("Enter the number of the 'from' unit: "))
+                if 1 <= from_unit_num <= len(units_list):
+                    break
+                else:
+                    print(f"Please enter a number between 1 and {len(units_list)}.")
+            except ValueError:
+                print("Please enter a valid integer.")
+        from_unit = units_list[from_unit_num - 1]
+        
+        # Select 'to' unit
+        print(f"\nSelect the 'to' unit for {selected_category.capitalize()}:")
+        for i, unit in enumerate(units_list, 1):
+            print(f"{i}. {unit}")
+        while True:
+            try:
+                to_unit_num = int(input("Enter the number of the 'to' unit: "))
+                if 1 <= to_unit_num <= len(units_list):
+                    break
+                else:
+                    print(f"Please enter a number between 1 and {len(units_list)}.")
+            except ValueError:
+                print("Please enter a valid integer.")
+        to_unit = units_list[to_unit_num - 1]
+        
+        # Get the value to convert
+        while True:
+            try:
+                value = float(input(f"\nEnter the value in {from_unit}: "))
                 break
-            else:
-                print(f"Please enter a number between 1 and {len(units_list)}.")
-        except ValueError:
-            print("Please enter a valid integer.")
-    
-    from_unit = units_list[from_unit_num - 1]
-    
-    # Step 3: Display 'to' units and get selection
-    print(f"\nSelect the 'to' unit for {selected_category}:")
-    for i, unit in enumerate(units_list, 1):
-        print(f"{i}. {unit}")
-    
-    while True:
+            except ValueError:
+                print("Please enter a valid number.")
+        
+        # Perform conversion and display result
         try:
-            to_unit_num = int(input("Enter the number of the 'to' unit: "))
-            if 1 <= to_unit_num <= len(units_list):
-                break
-            else:
-                print(f"Please enter a number between 1 and {len(units_list)}.")
-        except ValueError:
-            print("Please enter a valid integer.")
-    
-    to_unit = units_list[to_unit_num - 1]
-    
-    # Step 4: Get the value to convert
-    while True:
-        try:
-            value = float(input(f"\nEnter the value in {from_unit}: "))
-            break
-        except ValueError:
-            print("Please enter a valid number.")
-    
-    # Step 5: Perform conversion and display result
-    try:
-        result = convert(value, from_unit, to_unit)
-        print(f"{value} {from_unit} = {result} {to_unit}")
-    except ValueError as e:
-        print(f"Conversion error: {e}")
+            result = convert(value, from_unit, to_unit)
+            print(f"\n{value} {from_unit} = {result} {to_unit}\n")
+        except ValueError as e:
+            print(f"Conversion error: {e}")
+        
+        input("Press Enter to return to the main menu...")
+
+if __name__ == "__main__":
+    main()
