@@ -600,20 +600,57 @@
         // Initialize matrix input
         function initializeMatrix(matrixId, rows, cols) {
             const container = document.getElementById(matrixId);
-            container.style.gridTemplateColumns = `repeat(${cols}, auto)`;
+            container.style.gridTemplateColumns = `repeat(${cols}, 70px)`;
             container.innerHTML = '';
             
+            // Create a wrapper for better alignment
+            const wrapper = document.createElement('div');
+            wrapper.style.display = 'flex';
+            wrapper.style.flexDirection = 'column';
+            wrapper.style.alignItems = 'center';
+            wrapper.style.gap = '5px';
+            
+            // Create matrix grid
             for (let i = 0; i < rows; i++) {
+                const row = document.createElement('div');
+                row.style.display = 'flex';
+                row.style.gap = '5px';
+                
                 for (let j = 0; j < cols; j++) {
                     const input = document.createElement('input');
                     input.type = 'number';
                     input.className = 'matrix-input form-control';
                     input.value = '0';
+                    input.style.width = '70px';
+                    input.style.height = '45px';
+                    input.style.textAlign = 'center';
+                    input.style.margin = '0';
                     input.addEventListener('input', () => updateMatrixPreview(matrixId));
-                    container.appendChild(input);
+                    row.appendChild(input);
                 }
+                wrapper.appendChild(row);
             }
+            
+            container.appendChild(wrapper);
             updateMatrixPreview(matrixId);
+        }
+
+        // Get matrix values
+        function getMatrixValues(matrixId) {
+            const inputs = document.querySelectorAll(`#${matrixId} input`);
+            const rows = parseInt(document.getElementById(`rows${matrixId.slice(-1)}`).value);
+            const cols = parseInt(document.getElementById(`cols${matrixId.slice(-1)}`).value);
+            const matrix = [];
+            
+            for (let i = 0; i < rows; i++) {
+                const row = [];
+                for (let j = 0; j < cols; j++) {
+                    const value = inputs[i * cols + j].value;
+                    row.push(value === '' ? 0 : parseFloat(value));
+                }
+                matrix.push(row);
+            }
+            return matrix;
         }
 
         // Update matrix preview
@@ -630,23 +667,6 @@
             previewText += '\n]';
             
             preview.textContent = previewText;
-        }
-
-        // Get matrix values
-        function getMatrixValues(matrixId) {
-            const inputs = document.querySelectorAll(`#${matrixId} input`);
-            const rows = parseInt(document.getElementById(`rows${matrixId.slice(-1)}`).value);
-            const cols = parseInt(document.getElementById(`cols${matrixId.slice(-1)}`).value);
-            const matrix = [];
-            
-            for (let i = 0; i < rows; i++) {
-                const row = [];
-                for (let j = 0; j < cols; j++) {
-                    row.push(parseFloat(inputs[i * cols + j].value));
-                }
-                matrix.push(row);
-            }
-            return matrix;
         }
 
         // Load saved matrices
@@ -671,11 +691,25 @@
                 Object.keys(matrices).forEach(name => {
                     const div = document.createElement('div');
                     div.className = 'matrix-item';
-                    div.textContent = name;
+                    div.innerHTML = `
+                        <div class="matrix-name">${name}</div>
+                        <div class="matrix-preview">${formatMatrix(matrices[name])}</div>
+                    `;
                     div.onclick = () => toggleMatrixSelection(div, name);
                     list.appendChild(div);
                 });
             });
+        }
+
+        // Format matrix for display
+        function formatMatrix(matrix) {
+            let text = '[\n';
+            for (let i = 0; i < matrix.length; i++) {
+                text += '  [' + matrix[i].map(val => val.toFixed(2)).join(', ') + ']';
+                if (i < matrix.length - 1) text += ',\n';
+            }
+            text += '\n]';
+            return text;
         }
 
         // Toggle matrix selection
@@ -716,6 +750,10 @@
                     displayResult(data.message);
                     loadSavedMatrices();
                     document.getElementById('matrixName').value = '';
+                    // Clear matrix inputs
+                    const inputs = document.querySelectorAll('#matrixNew input');
+                    inputs.forEach(input => input.value = '0');
+                    updateMatrixPreview('matrixNew');
                 }
             } catch (error) {
                 console.error('Error saving matrix:', error);
@@ -987,11 +1025,28 @@
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', () => {
             // Initialize new matrix input
-            updateMatrixDimensions('matrixNew');
+            const rows = parseInt(document.getElementById('rowsNew').value);
+            const cols = parseInt(document.getElementById('colsNew').value);
+            if (rows > 0 && cols > 0) {
+                initializeMatrix('matrixNew', rows, cols);
+            }
 
             // Add event listeners for dimension changes
-            document.getElementById('rowsNew').addEventListener('change', () => updateMatrixDimensions('matrixNew'));
-            document.getElementById('colsNew').addEventListener('change', () => updateMatrixDimensions('matrixNew'));
+            document.getElementById('rowsNew').addEventListener('change', () => {
+                const rows = parseInt(document.getElementById('rowsNew').value);
+                const cols = parseInt(document.getElementById('colsNew').value);
+                if (rows > 0 && cols > 0) {
+                    initializeMatrix('matrixNew', rows, cols);
+                }
+            });
+
+            document.getElementById('colsNew').addEventListener('change', () => {
+                const rows = parseInt(document.getElementById('rowsNew').value);
+                const cols = parseInt(document.getElementById('colsNew').value);
+                if (rows > 0 && cols > 0) {
+                    initializeMatrix('matrixNew', rows, cols);
+                }
+            });
 
             // Load saved matrices
             loadSavedMatrices();
@@ -1001,7 +1056,9 @@
         function updateMatrixDimensions(matrixId) {
             const rows = parseInt(document.getElementById(`rows${matrixId.slice(-1)}`).value);
             const cols = parseInt(document.getElementById(`cols${matrixId.slice(-1)}`).value);
-            initializeMatrix(matrixId, rows, cols);
+            if (rows > 0 && cols > 0) {
+                initializeMatrix(matrixId, rows, cols);
+            }
         }
     </script>
 </body>
