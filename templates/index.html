@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Matrix Calculator</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --secondary-color: #2c3e50;
+            --accent-color: #e74c3c;
+            --bg-color: #f8f9fa;
+            --text-color: #212529;
+            --card-bg: #ffffff;
+            --border-color: #dee2e6;
+        }
+
+        [data-bs-theme="dark"] {
+            --primary-color: #64b5f6;
+            --secondary-color: #90caf9;
+            --accent-color: #ef5350;
+            --bg-color: #212529;
+            --text-color: #f8f9fa;
+            --card-bg: #343a40;
+            --border-color: #495057;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .navbar {
+            background-color: var(--primary-color);
+            padding: 1rem;
+            margin-bottom: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .navbar-brand {
+            color: white !important;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .matrix-container {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border-color);
+        }
+
+        .matrix-input {
+            width: 70px;
+            height: 45px;
+            text-align: center;
+            margin: 3px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            font-size: 1rem;
+            background-color: var(--card-bg);
+            color: var(--text-color);
+        }
+
+        .matrix-input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(74, 144, 226, 0.25);
+        }
+
+        .matrix-grid {
+            display: grid;
+            gap: 5px;
+            margin: 15px 0;
+        }
+
+        .operation-btn {
+            margin: 5px;
+            padding: 8px 16px;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+            background-color: var(--primary-color);
+            border: none;
+            color: white;
+        }
+
+        .operation-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            background-color: var(--secondary-color);
+        }
+
+        .result-container {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-top: 20px;
+            border: 1px solid var(--border-color);
+        }
+
+        .result-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .result-table td {
+            padding: 10px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+        }
+
+        .dimension-input {
+            width: 80px;
+            margin: 0 5px;
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+        }
+
+        .tab-content {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-top: 20px;
+            border: 1px solid var(--border-color);
+        }
+
+        .nav-tabs .nav-link {
+            color: var(--text-color);
+            border: none;
+            padding: 10px 20px;
+            margin-right: 5px;
+            border-radius: 5px;
+            background-color: var(--card-bg);
+        }
+
+        .nav-tabs .nav-link.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .property-badge {
+            font-size: 1.1rem;
+            padding: 8px 16px;
+            margin: 5px;
+            border-radius: 20px;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--text-color);
+        }
+
+        .property-badge:hover {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .scalar-input {
+            width: 120px;
+            margin: 10px 0;
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+        }
+
+        .error-message {
+            color: var(--accent-color);
+            padding: 10px;
+            border-radius: 5px;
+            background-color: rgba(239, 83, 80, 0.1);
+            margin: 10px 0;
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background-color: var(--primary-color);
+            border: none;
+            color: white;
+            padding: 10px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1);
+            background-color: var(--secondary-color);
+        }
+
+        .matrix-preview {
+            font-family: 'Courier New', monospace;
+            background-color: var(--card-bg);
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            border: 1px solid var(--border-color);
+        }
+
+        .help-tooltip {
+            position: relative;
+            display: inline-block;
+            margin-left: 5px;
+            cursor: help;
+        }
+
+        .help-tooltip .tooltip-text {
+            visibility: hidden;
+            width: 200px;
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            border: 1px solid var(--border-color);
+        }
+
+        .help-tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .menu-item {
+            padding: 15px;
+            margin: 5px 0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+        }
+
+        .menu-item:hover {
+            background-color: var(--primary-color);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .menu-item.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .matrix-list {
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 15px 0;
+        }
+
+        .matrix-item {
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .matrix-item:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .matrix-item.selected {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .matrix-selector {
+            margin: 15px 0;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+        }
+
+        .operation-panel {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .operation-panel.active {
+            display: block;
+        }
+
+        .matrix-preview {
+            font-family: 'Courier New', monospace;
+            background-color: var(--card-bg);
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            border: 1px solid var(--border-color);
+            white-space: pre;
+        }
+
+        .matrix-grid {
+            display: grid;
+            gap: 5px;
+            margin: 15px 0;
+        }
+
+        .matrix-input {
+            width: 70px;
+            height: 45px;
+            text-align: center;
+            margin: 3px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            font-size: 1rem;
+            background-color: var(--card-bg);
+            color: var(--text-color);
+        }
+
+        .matrix-input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(74, 144, 226, 0.25);
+        }
+
+        .dimension-input {
+            width: 80px;
+            margin: 0 5px;
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+        }
+
+        .result-container {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-top: 20px;
+            border: 1px solid var(--border-color);
+        }
+
+        .result-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .result-table td {
+            padding: 10px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+        }
+
+        .error-message {
+            color: var(--accent-color);
+            padding: 10px;
+            border-radius: 5px;
+            background-color: rgba(239, 83, 80, 0.1);
+            margin: 10px 0;
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background-color: var(--primary-color);
+            border: none;
+            color: white;
+            padding: 10px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1);
+            background-color: var(--secondary-color);
+        }
+    </style>
+</head>
+<body>
+    <button class="theme-toggle" onclick="toggleTheme()">
+        <i class="fas fa-moon"></i>
+    </button>
+
+    <nav class="navbar">
+        <div class="container">
+            <span class="navbar-brand">
+                <i class="fas fa-calculator"></i> Advanced Matrix Calculator
+            </span>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="row">
+            <!-- Menu Sidebar -->
+            <div class="col-md-3">
+                <div class="menu-item active" onclick="showMenu('management')">
+                    <i class="fas fa-database"></i> Matrix Management
+                </div>
+                <div class="menu-item" onclick="showMenu('operations')">
+                    <i class="fas fa-calculator"></i> Matrix Operations
+                </div>
+            </div>
+
+            <!-- Content Area -->
+            <div class="col-md-9">
+                <!-- Matrix Management Menu -->
+                <div id="management-menu" class="operation-panel active">
+                    <h3><i class="fas fa-database"></i> Matrix Management</h3>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="matrix-container">
+                                <h4>New Matrix</h4>
+                                <div class="mb-3">
+                                    <input type="text" id="matrixName" class="form-control" placeholder="Matrix Name">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Dimensions:</label>
+                                    <div class="input-group">
+                                        <input type="number" id="rowsNew" class="form-control dimension-input" placeholder="Rows" min="1" value="2">
+                                        <span class="input-group-text">×</span>
+                                        <input type="number" id="colsNew" class="form-control dimension-input" placeholder="Columns" min="1" value="2">
+                                    </div>
+                                </div>
+                                <div id="matrixNew" class="matrix-grid"></div>
+                                <div class="matrix-preview" id="previewNew"></div>
+                                <button class="btn btn-primary mt-3" onclick="saveMatrix()">Save Matrix</button>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="matrix-container">
+                                <h4>Saved Matrices</h4>
+                                <div id="savedMatrices" class="matrix-list"></div>
+                                <div class="mt-3">
+                                    <button class="btn btn-danger" onclick="deleteSelectedMatrix()">Delete Selected</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Matrix Operations Menu -->
+                <div id="operations-menu" class="operation-panel">
+                    <h3><i class="fas fa-calculator"></i> Matrix Operations</h3>
+                    
+                    <!-- Matrix Selection -->
+                    <div class="matrix-selector">
+                        <h4>Select Matrix</h4>
+                        <div id="operationMatrices" class="matrix-list"></div>
+                    </div>
+
+                    <!-- Operation Buttons -->
+                    <div class="btn-group">
+                        <button class="btn btn-primary operation-btn" onclick="showOperation('add')">
+                            <i class="fas fa-plus"></i> Add
+                        </button>
+                        <button class="btn btn-primary operation-btn" onclick="showOperation('subtract')">
+                            <i class="fas fa-minus"></i> Subtract
+                        </button>
+                        <button class="btn btn-primary operation-btn" onclick="showOperation('multiply')">
+                            <i class="fas fa-times"></i> Multiply
+                        </button>
+                        <button class="btn btn-primary operation-btn" onclick="showOperation('power')">
+                            <i class="fas fa-superscript"></i> Power
+                        </button>
+                        <button class="btn btn-primary operation-btn" onclick="showOperation('transpose')">
+                            <i class="fas fa-exchange-alt"></i> Transpose
+                        </button>
+                        <button class="btn btn-primary operation-btn" onclick="showOperation('inverse')">
+                            <i class="fas fa-undo"></i> Inverse
+                        </button>
+                        <button class="btn btn-primary operation-btn" onclick="showOperation('determinant')">
+                            <i class="fas fa-calculator"></i> Determinant
+                        </button>
+                        <button class="btn btn-primary operation-btn" onclick="showOperation('trace')">
+                            <i class="fas fa-bezier-curve"></i> Trace
+                        </button>
+                        <button class="btn btn-primary operation-btn" onclick="showOperation('eigenvalues')">
+                            <i class="fas fa-square-root-alt"></i> Eigenvalues
+                        </button>
+                        <button class="btn btn-primary operation-btn" onclick="showOperation('characteristic')">
+                            <i class="fas fa-function"></i> Characteristic Equation
+                        </button>
+                        <button class="btn btn-primary operation-btn" onclick="showOperation('symmetric')">
+                            <i class="fas fa-balance-scale"></i> Check Symmetry
+                        </button>
+                        <button class="btn btn-primary operation-btn" onclick="showOperation('orthogonal')">
+                            <i class="fas fa-perpendicular"></i> Check Orthogonality
+                        </button>
+                    </div>
+
+                    <!-- Operation Panels -->
+                    <div id="operation-panels">
+                        <!-- Add/Subtract Panel -->
+                        <div id="add-subtract-panel" class="operation-panel">
+                            <h4>Select Matrices</h4>
+                            <div id="add-subtract-matrices" class="matrix-list"></div>
+                            <button class="btn btn-primary mt-3" onclick="performAddSubtract()">Calculate</button>
+                        </div>
+
+                        <!-- Multiply Panel -->
+                        <div id="multiply-panel" class="operation-panel">
+                            <h4>Multiplication Type</h4>
+                            <div class="btn-group">
+                                <button class="btn btn-primary" onclick="showMultiplyType('matrix')">Matrix Multiplication</button>
+                                <button class="btn btn-primary" onclick="showMultiplyType('scalar')">Scalar Multiplication</button>
+                            </div>
+                            <div id="matrix-multiply-panel" class="mt-3">
+                                <h5>Select Matrices</h5>
+                                <div id="multiply-matrices" class="matrix-list"></div>
+                                <button class="btn btn-primary mt-3" onclick="performMatrixMultiply()">Calculate</button>
+                            </div>
+                            <div id="scalar-multiply-panel" class="mt-3" style="display: none;">
+                                <h5>Enter Scalar Value</h5>
+                                <input type="number" id="scalarValue" class="form-control">
+                                <button class="btn btn-primary mt-3" onclick="performScalarMultiply()">Calculate</button>
+                            </div>
+                        </div>
+
+                        <!-- Power Panel -->
+                        <div id="power-panel" class="operation-panel">
+                            <h4>Enter Power Value</h4>
+                            <input type="number" id="powerValue" class="form-control">
+                            <button class="btn btn-primary mt-3" onclick="performPower()">Calculate</button>
+                        </div>
+
+                        <!-- Single Matrix Operations Panel -->
+                        <div id="single-matrix-panel" class="operation-panel">
+                            <h4>Select Matrix</h4>
+                            <div id="single-matrix-list" class="matrix-list"></div>
+                            <button class="btn btn-primary mt-3" onclick="performSingleMatrixOperation()">Calculate</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Result Section -->
+        <div class="result-container">
+            <h3><i class="fas fa-equals"></i> Result</h3>
+            <div id="result" class="text-center"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentOperation = null;
+        let selectedMatrices = new Set();
+
+        // Theme toggle function
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-bs-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            html.setAttribute('data-bs-theme', newTheme);
+            
+            const themeIcon = document.querySelector('.theme-toggle i');
+            themeIcon.className = newTheme === 'light' ? 'fas fa-moon' : 'fas fa-sun';
+            
+            localStorage.setItem('theme', newTheme);
+        }
+
+        // Initialize theme from localStorage
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-bs-theme', savedTheme);
+        document.querySelector('.theme-toggle i').className = savedTheme === 'light' ? 'fas fa-moon' : 'fas fa-sun';
+
+        // Show menu
+        function showMenu(menu) {
+            document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
+            document.querySelectorAll('.operation-panel').forEach(panel => panel.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(`${menu}-menu`).classList.add('active');
+        }
+
+        // Initialize matrix input
+        function initializeMatrix(matrixId, rows, cols) {
+            const container = document.getElementById(matrixId);
+            container.style.gridTemplateColumns = `repeat(${cols}, auto)`;
+            container.innerHTML = '';
+            
+            for (let i = 0; i < rows; i++) {
+                for (let j = 0; j < cols; j++) {
+                    const input = document.createElement('input');
+                    input.type = 'number';
+                    input.className = 'matrix-input form-control';
+                    input.value = '0';
+                    input.addEventListener('input', () => updateMatrixPreview(matrixId));
+                    container.appendChild(input);
+                }
+            }
+            updateMatrixPreview(matrixId);
+        }
+
+        // Update matrix preview
+        function updateMatrixPreview(matrixId) {
+            const previewId = 'preview' + matrixId.slice(-1);
+            const preview = document.getElementById(previewId);
+            const matrix = getMatrixValues(matrixId);
+            
+            let previewText = '[\n';
+            for (let i = 0; i < matrix.length; i++) {
+                previewText += '  [' + matrix[i].map(val => val.toFixed(2)).join(', ') + ']';
+                if (i < matrix.length - 1) previewText += ',\n';
+            }
+            previewText += '\n]';
+            
+            preview.textContent = previewText;
+        }
+
+        // Get matrix values
+        function getMatrixValues(matrixId) {
+            const inputs = document.querySelectorAll(`#${matrixId} input`);
+            const rows = parseInt(document.getElementById(`rows${matrixId.slice(-1)}`).value);
+            const cols = parseInt(document.getElementById(`cols${matrixId.slice(-1)}`).value);
+            const matrix = [];
+            
+            for (let i = 0; i < rows; i++) {
+                const row = [];
+                for (let j = 0; j < cols; j++) {
+                    row.push(parseFloat(inputs[i * cols + j].value));
+                }
+                matrix.push(row);
+            }
+            return matrix;
+        }
+
+        // Load saved matrices
+        async function loadSavedMatrices() {
+            try {
+                const response = await fetch('/matrices');
+                const matrices = await response.json();
+                updateMatrixLists(matrices);
+            } catch (error) {
+                console.error('Error loading matrices:', error);
+            }
+        }
+
+        // Update matrix lists
+        function updateMatrixLists(matrices) {
+            const lists = ['savedMatrices', 'operationMatrices', 'add-subtract-matrices', 
+                         'multiply-matrices', 'single-matrix-list'];
+            
+            lists.forEach(listId => {
+                const list = document.getElementById(listId);
+                list.innerHTML = '';
+                Object.keys(matrices).forEach(name => {
+                    const div = document.createElement('div');
+                    div.className = 'matrix-item';
+                    div.textContent = name;
+                    div.onclick = () => toggleMatrixSelection(div, name);
+                    list.appendChild(div);
+                });
+            });
+        }
+
+        // Toggle matrix selection
+        function toggleMatrixSelection(element, name) {
+            element.classList.toggle('selected');
+            if (element.classList.contains('selected')) {
+                selectedMatrices.add(name);
+            } else {
+                selectedMatrices.delete(name);
+            }
+        }
+
+        // Save matrix
+        async function saveMatrix() {
+            const name = document.getElementById('matrixName').value;
+            if (!name) {
+                displayResult('Please enter a matrix name', true);
+                return;
+            }
+
+            const matrix = getMatrixValues('matrixNew');
+            try {
+                const response = await fetch('/matrices', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        name: name,
+                        matrix: matrix
+                    })
+                });
+
+                const data = await response.json();
+                if (data.error) {
+                    displayResult(data.error, true);
+                } else {
+                    displayResult(data.message);
+                    loadSavedMatrices();
+                    document.getElementById('matrixName').value = '';
+                }
+            } catch (error) {
+                console.error('Error saving matrix:', error);
+                displayResult('Error saving matrix', true);
+            }
+        }
+
+        // Delete selected matrix
+        async function deleteSelectedMatrix() {
+            const selected = document.querySelector('#savedMatrices .selected');
+            if (!selected) {
+                displayResult('Please select a matrix to delete', true);
+                return;
+            }
+
+            const name = selected.textContent;
+            try {
+                const response = await fetch(`/matrices/${name}`, {
+                    method: 'DELETE'
+                });
+
+                const data = await response.json();
+                if (data.error) {
+                    displayResult(data.error, true);
+                } else {
+                    displayResult(data.message);
+                    loadSavedMatrices();
+                }
+            } catch (error) {
+                console.error('Error deleting matrix:', error);
+                displayResult('Error deleting matrix', true);
+            }
+        }
+
+        // Show operation panel
+        function showOperation(operation) {
+            currentOperation = operation;
+            selectedMatrices.clear();
+            document.querySelectorAll('.matrix-item').forEach(item => item.classList.remove('selected'));
+
+            // Hide all operation panels
+            document.querySelectorAll('#operation-panels .operation-panel').forEach(panel => {
+                panel.style.display = 'none';
+            });
+
+            // Show appropriate panel
+            if (['add', 'subtract'].includes(operation)) {
+                document.getElementById('add-subtract-panel').style.display = 'block';
+            } else if (operation === 'multiply') {
+                document.getElementById('multiply-panel').style.display = 'block';
+            } else if (operation === 'power') {
+                document.getElementById('power-panel').style.display = 'block';
+            } else {
+                document.getElementById('single-matrix-panel').style.display = 'block';
+            }
+        }
+
+        // Show multiply type
+        function showMultiplyType(type) {
+            document.getElementById('matrix-multiply-panel').style.display = type === 'matrix' ? 'block' : 'none';
+            document.getElementById('scalar-multiply-panel').style.display = type === 'scalar' ? 'block' : 'none';
+        }
+
+        // Perform add/subtract operation
+        async function performAddSubtract() {
+            if (selectedMatrices.size < 2) {
+                displayResult('Please select at least 2 matrices', true);
+                return;
+            }
+
+            const matrices = Array.from(selectedMatrices);
+            try {
+                const response = await fetch('/calculate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        operation: currentOperation,
+                        matrixA: matrices[0],
+                        matrixB: matrices[1]
+                    })
+                });
+
+                const data = await response.json();
+                if (data.error) {
+                    displayResult(data.error, true);
+                } else {
+                    displayResult(data.result);
+                }
+            } catch (error) {
+                console.error('Error performing operation:', error);
+                displayResult('Error performing operation', true);
+            }
+        }
+
+        // Perform matrix multiplication
+        async function performMatrixMultiply() {
+            if (selectedMatrices.size < 2) {
+                displayResult('Please select at least 2 matrices', true);
+                return;
+            }
+
+            const matrices = Array.from(selectedMatrices);
+            try {
+                const response = await fetch('/calculate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        operation: 'multiply',
+                        matrixA: matrices[0],
+                        matrixB: matrices[1]
+                    })
+                });
+
+                const data = await response.json();
+                if (data.error) {
+                    displayResult(data.error, true);
+                } else {
+                    displayResult(data.result);
+                }
+            } catch (error) {
+                console.error('Error performing operation:', error);
+                displayResult('Error performing operation', true);
+            }
+        }
+
+        // Perform scalar multiplication
+        async function performScalarMultiply() {
+            if (selectedMatrices.size !== 1) {
+                displayResult('Please select exactly 1 matrix', true);
+                return;
+            }
+
+            const scalar = parseFloat(document.getElementById('scalarValue').value);
+            if (isNaN(scalar)) {
+                displayResult('Please enter a valid scalar value', true);
+                return;
+            }
+
+            const matrix = Array.from(selectedMatrices)[0];
+            try {
+                const response = await fetch('/calculate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        operation: 'scalar_multiply',
+                        matrixA: matrix,
+                        scalar: scalar
+                    })
+                });
+
+                const data = await response.json();
+                if (data.error) {
+                    displayResult(data.error, true);
+                } else {
+                    displayResult(data.result);
+                }
+            } catch (error) {
+                console.error('Error performing operation:', error);
+                displayResult('Error performing operation', true);
+            }
+        }
+
+        // Perform power operation
+        async function performPower() {
+            if (selectedMatrices.size !== 1) {
+                displayResult('Please select exactly 1 matrix', true);
+                return;
+            }
+
+            const power = parseFloat(document.getElementById('powerValue').value);
+            if (isNaN(power)) {
+                displayResult('Please enter a valid power value', true);
+                return;
+            }
+
+            const matrix = Array.from(selectedMatrices)[0];
+            try {
+                const response = await fetch('/calculate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        operation: 'power',
+                        matrixA: matrix,
+                        scalar: power
+                    })
+                });
+
+                const data = await response.json();
+                if (data.error) {
+                    displayResult(data.error, true);
+                } else {
+                    displayResult(data.result);
+                }
+            } catch (error) {
+                console.error('Error performing operation:', error);
+                displayResult('Error performing operation', true);
+            }
+        }
+
+        // Perform single matrix operation
+        async function performSingleMatrixOperation() {
+            if (selectedMatrices.size !== 1) {
+                displayResult('Please select exactly 1 matrix', true);
+                return;
+            }
+
+            const matrix = Array.from(selectedMatrices)[0];
+            try {
+                const response = await fetch('/calculate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        operation: currentOperation,
+                        matrixA: matrix
+                    })
+                });
+
+                const data = await response.json();
+                if (data.error) {
+                    displayResult(data.error, true);
+                } else {
+                    displayResult(data.result);
+                }
+            } catch (error) {
+                console.error('Error performing operation:', error);
+                displayResult('Error performing operation', true);
+            }
+        }
+
+        // Display result
+        function displayResult(result, isError = false) {
+            const resultDiv = document.getElementById('result');
+            if (isError) {
+                resultDiv.innerHTML = `<div class="error-message">${result}</div>`;
+            } else if (typeof result === 'string') {
+                resultDiv.innerHTML = `<p>${result}</p>`;
+            } else if (Array.isArray(result)) {
+                if (result[0] && typeof result[0] === 'object') {
+                    // Matrix result
+                    let html = '<table class="result-table">';
+                    for (let row of result) {
+                        html += '<tr>';
+                        for (let val of row) {
+                            html += `<td>${val.toFixed(4)}</td>`;
+                        }
+                        html += '</tr>';
+                    }
+                    html += '</table>';
+                    resultDiv.innerHTML = html;
+                } else {
+                    // List result (e.g., eigenvalues)
+                    resultDiv.innerHTML = `<p>${result.map(val => val.toFixed(4)).join(', ')}</p>`;
+                }
+            } else {
+                resultDiv.innerHTML = `<p>${result.toFixed(4)}</p>`;
+            }
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize new matrix input
+            updateMatrixDimensions('matrixNew');
+
+            // Add event listeners for dimension changes
+            document.getElementById('rowsNew').addEventListener('change', () => updateMatrixDimensions('matrixNew'));
+            document.getElementById('colsNew').addEventListener('change', () => updateMatrixDimensions('matrixNew'));
+
+            // Load saved matrices
+            loadSavedMatrices();
+        });
+
+        // Update matrix dimensions
+        function updateMatrixDimensions(matrixId) {
+            const rows = parseInt(document.getElementById(`rows${matrixId.slice(-1)}`).value);
+            const cols = parseInt(document.getElementById(`cols${matrixId.slice(-1)}`).value);
+            initializeMatrix(matrixId, rows, cols);
+        }
+    </script>
+</body>
+</html>
